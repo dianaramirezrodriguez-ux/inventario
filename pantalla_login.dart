@@ -1,0 +1,90 @@
+##lib/pantalla_login.dart
+
+  import 'package:flutter/material.dart';
+import 'services/auth_service.dart';
+
+class PantallaLogin extends StatefulWidget {
+  const PantallaLogin({super.key});
+  @override
+  State<PantallaLogin> createState() => _PantallaLoginState();
+}
+
+class _PantallaLoginState extends State<PantallaLogin> {
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  final _auth = AuthService();
+  bool _cargando = false;
+  bool _esRegistro = false;
+
+  Future<void> _submit() async {
+    setState(() => _cargando = true);
+    try {
+      if (_esRegistro) {
+        await _auth.registrar(_email.text.trim(), _password.text);
+      } else {
+        await _auth.login(_email.text.trim(), _password.text);
+      }
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => _cargando = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              const Icon(Icons.inventory, size: 72, color: Colors.indigo),
+              const SizedBox(height: 8),
+              const Text('Inventario App',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 32),
+              TextField(
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email_outlined),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _password,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Contraseña',
+                  prefixIcon: Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _cargando ? null : _submit,
+                  child: _cargando
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(_esRegistro ? 'Crear cuenta' : 'Iniciar sesión'),
+                ),
+              ),
+              TextButton(
+                onPressed: () => setState(() => _esRegistro = !_esRegistro),
+                child: Text(_esRegistro
+                    ? '¿Ya tienes cuenta? Inicia sesión'
+                    : '¿No tienes cuenta? Regístrate'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
