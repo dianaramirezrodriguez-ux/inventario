@@ -1,0 +1,16 @@
+-- Tabla productos
+CREATE TABLE productos (
+  id         UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
+  nombre     TEXT         NOT NULL,
+  precio     NUMERIC(10,2) NOT NULL,
+  stock      INTEGER      DEFAULT 0,
+  imagen_url TEXT,
+  user_id    UUID         REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ  DEFAULT NOW()
+);
+
+-- Seguridad por usuario (RLS)
+ALTER TABLE productos ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "usuario ve sus productos" ON productos
+  FOR ALL USING (auth.uid() = user_id);
